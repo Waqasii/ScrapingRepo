@@ -1,7 +1,7 @@
 from requests import get
 from bs4 import BeautifulSoup
 import pandas as pd
-from selenium import webdriver
+import ast
 
 
 class ZillowScrapper:
@@ -9,36 +9,43 @@ class ZillowScrapper:
     def __init__(self,start_link):
         self.current_link=start_link
         self.visited_link=[]
-        self.df = pd.DataFrame(columns=['Title','Type','District','Location','Address','Energy Label','Price','Year Built','Bedrooms','Baths','Living Area','Land Area','Parking Spots','From Shore (m)','Link'])
-        print('Scrapping Start')
-        self.driver = webdriver.Chrome()
         
+        print('Scrapping Start')
+        
+        # Set Header
+        self.header = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.97 Safari/537.36',
+        'referer': start_link
+        
+        }
         # try:
-        self.getInfo()
+        # get total pages first
+        total_pages = self.getPagelinks(start_link)
+        print('Total Pages:', len(total_pages))
+        
+       
+        # now get house from each page
+        self.getInfo(total_pages)
+        
         # except:
         # self.df.to_excel("output.xlsx") 
             
     
-    def getInfo(self):
-        if(self.current_link not in self.visited_link):
-            self.visited_link.append(self.current_link)
-            # print(self.current_link)
+    def getInfo(self, total_pages):
+        
+        for page in total_pages:
+            response = get(url=page,headers=self.header)
+            html_soup = BeautifulSoup(response.text, 'html.parser')
             
-            
-            self.driver = webdriver.Chrome()
-            self.driver.get(self.current_link)
-            html = self.driver.execute_script("return document.documentElement.outerHTML")
-            html_soup = BeautifulSoup(html, 'html.parser')
+            # total houses on this page
             total_places=html_soup.find_all('article' , attrs={'class': 'list-card', })
-            
             print('Total House On This Page:',len(total_places))
             
             
+
+               
+            # get data from each house
             for place in total_places:
                 
-                #get link of each house
-                house_link=place.find('a')['href']
-                print('house_link: ', house_link)
                 
                 house_price = place.find('div' , attrs={'class': 'list-card-price', }).text
                 print('house_price: ', house_price)
@@ -48,10 +55,56 @@ class ZillowScrapper:
                 
                 house_add = place.find('address' , attrs={'class': 'list-card-addr', }).text
                 print('house_add:', house_add)
+                
+                houses = html_soup.findAll('script', {'type' : 'application/ld+json'})
+                houses = ast.literal_eval(houses[0].text)
+                
+                house_latitude = houses['geo']['latitude']
+                house_longitude = houses['geo']['longitude']
+                print('latitude:', house_latitude)
+                print('longitude:', house_longitude)
+                
+                house_url = houses['url']
+                print('House URL:', house_url)
+
                 break
+            
                 
-                
+    def getPagelinks(self,start_link):
+        
+        return [start_link]
     
+        total_pages = []
+        current_page = start_link
+        next_page = start_link
+        real_links = []
+        
+        # append the first page link
+        total_pages.append(start_link)
+        real_links.append(start_link)
+        while True:
+            try:
+                response = get(url=current_page,headers=self.header)
+                html_soup = BeautifulSoup(response.text, 'html.parser')
+                
+                next_page = 'https://www.zillow.com' + html_soup.find('a' , attrs={'title': 'Next page', })['href']
+                
+                
+                if next_page  in total_pages:
+                    break
+                else:
+                    print(next_page)
+                    total_pages.append(next_page)
+                
+            except:
+                break
+            
+            
+            
+            
+            
+        return real_links
+        
         
 
 
