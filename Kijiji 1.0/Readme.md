@@ -1,0 +1,1 @@
+This kijiji scraper will scrape the buy and sell categories ad

@@ -1,0 +1,89 @@
+from time import sleep
+from selenium.webdriver.common.keys import Keys
+from selenium import webdriver
+from parsel import Selector
+import csv
+import os.path
+from collections import defaultdict
+import re
+from requests import get
+from bs4 import BeautifulSoup
+import pandas as pd
+from lxml import etree
+
+
+class KijijiScraper():
+    
+    def __init__(self, base_url: str, start_link: str) -> None:
+        self.base_url = base_url
+        self.start_link = start_link
+        self.item_links = []
+        self.pages_links = [start_link]
+        
+        self.get_items_links(self.start_link)
+    
+    
+    def get_items_links(self, page_link):
+        """This method will grab all the links of items on a provided page link 
+        and it will save into self.item_links
+        """
+        response = get(page_link)
+        html_soup = BeautifulSoup(response.text, 'html.parser')
+        total_items=[self.base_url+link['href'] for link in html_soup.find_all('a' , attrs={'class': 'title'}) ]
+        self.item_links.extend(total_items)
+        
+        # get the next page link if available else finish
+        next_page = self.get_next_page(page_link=page_link)
+        if next_page:
+            self.scrape_info()
+            # self.get_items_links(next_page)
+        else:
+            self.scrape_info()
+    
+    
+    def get_next_page(self, page_link):
+        """This method will return the next_page link if found else None
+        """
+        response = get(page_link)
+        html_soup = BeautifulSoup(response.text, 'html.parser')
+        
+        try:
+            next_page = self.base_url + html_soup.find_all('a' , attrs={'title': 'Next'})[0]['href']
+            if next_page not in self.pages_links:
+                self.pages_links.append(next_page)
+                return next_page
+            else:
+                return None
+        except:
+            return None
+        
+    
+    def scrape_info(self):
+        """This method will scrape all the info of each item and will save it into dataframe
+        """
+        print('In Scrape Info')
+        
+        for item in self.item_links:
+            print('--------------Link:', item)
+            
+            response = get(item)
+            html_soup = BeautifulSoup(response.text, 'html.parser')
+            
+            title = html_soup.find('h1' , attrs={'class': 'title-2323565163'}).text
+            bread_crumbs = html_soup.find('div' , attrs={'class': 'breadcrumbs-320621489'}).text
+            date_posted = html_soup.find('div' , attrs={'class': 'datePosted-383942873'}).text
+            address = html_soup.find('span' , attrs={'class': 'address-3617944557'}).text
+            pictures = html_soup.find_all('picture' , attrs={'class': None})
+            print('Title:', title)
+            print('bread_crumbs:', bread_crumbs)
+            print('date_posted:', date_posted)
+            print('address:', address)
+            print('pictures:', len(pictures))
+            break
+    
+
+
+
+base_url = 'https://www.kijiji.ca'
+start_link = 'https://www.kijiji.ca/b-buy-sell/ontario/c10l9004'
+KijijiScraper(base_url=base_url, start_link=start_link)
