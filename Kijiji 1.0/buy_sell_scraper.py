@@ -1,7 +1,4 @@
 from time import sleep
-from selenium.webdriver.common.keys import Keys
-from selenium import webdriver
-from parsel import Selector
 import csv
 import os.path
 from collections import defaultdict
@@ -9,8 +6,7 @@ import re
 from requests import get
 from bs4 import BeautifulSoup
 import pandas as pd
-from lxml import etree
-
+import re
 
 class KijijiScraper():
     
@@ -73,12 +69,33 @@ class KijijiScraper():
             bread_crumbs = html_soup.find('div' , attrs={'class': 'breadcrumbs-320621489'}).text
             date_posted = html_soup.find('div' , attrs={'class': 'datePosted-383942873'}).text
             address = html_soup.find('span' , attrs={'class': 'address-3617944557'}).text
-            pictures = html_soup.find_all('picture' , attrs={'class': None})
+            pictures = html_soup.find_all('img')
+            description = html_soup.find('div' , attrs={'itemprop': 'description'}).text
+            try:
+                phone_no = re.findall(r"((?:\+\d{2}[-\.\s]??|\d{4}[-\.\s]??)?(?:\d{3}[-\.\s]??\d{3}[-\.\s]??\d{4}|\(\d{3}\)\s*\d{3}[-\.\s]??\d{4}|\d{3}[-\.\s]??\d{4}))", description)
+                # phone_no = phone_regex.search(str(description)).group()
+            except:
+                phone_no = 'None'
+
+            try:
+                email = re.findall(r"(\b[\w.]+@+[\w.]+.+[\w.]\b)", description)
+                # email = email_regex.search(str(description)).group()
+            except:
+                email = 'None'
+
+
+    
+            
+
             print('Title:', title)
             print('bread_crumbs:', bread_crumbs)
             print('date_posted:', date_posted)
             print('address:', address)
             print('pictures:', len(pictures))
+            print('description:', description)
+            print('phone_no:', phone_no)
+            print('email:', email)
+            
             break
     
 
