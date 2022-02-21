@@ -19,7 +19,7 @@ title = html_soup.find('h1' , attrs={'class': 'title-2323565163'}).get_text()
 bread_crumbs = html_soup.find('div' , attrs={'class': 'breadcrumbs-320621489'}).text
 date_posted = html_soup.find('div' , attrs={'class': 'datePosted-383942873'}).text if html_soup.find('div' , attrs={'class': 'datePosted-383942873'}) is not None else 'N/A'
 address = html_soup.find('span' , attrs={'class': 'address-3617944557'}).text
-pictures = html_soup.find_all('img')
+pictures = [ img['src'] for img in html_soup.find_all('img') ]
 description = html_soup.find('div' , attrs={'itemprop': 'description'}).text
 try:
     phone_no = re.findall(r"((?:\+\d{2}[-\.\s]??|\d{4}[-\.\s]??)?(?:\d{3}[-\.\s]??\d{3}[-\.\s]??\d{4}|\(\d{3}\)\s*\d{3}[-\.\s]??\d{4}|\d{3}[-\.\s]??\d{4}))", description)
@@ -39,7 +39,7 @@ print('Title:', title)
 print('bread_crumbs:', bread_crumbs)
 print('date_posted:', date_posted)
 print('address:', address)
-print('pictures:', pictures[0]['src'])
+print('pictures:', pictures)
 print(description)
 print(phone_no)
 print(email)

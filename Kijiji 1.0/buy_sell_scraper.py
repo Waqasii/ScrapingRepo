@@ -78,7 +78,7 @@ class KijijiScraper():
             longitude = html_soup.find('meta' , attrs={'property': 'og:longitude'})['content'] if html_soup.find('meta' , attrs={'property': 'og:longitude'})  is not None else 'N/A'
             locality = html_soup.find('meta' , attrs={'property': 'og:locality'})['content'] if html_soup.find('meta' , attrs={'property': 'og:locality'})  is not None else 'N/A'
             region = html_soup.find('meta' , attrs={'property': 'og:region'})['content'] if html_soup.find('meta' , attrs={'property': 'og:region'}) is not None else 'N/A'
-            pictures = html_soup.find_all('img')
+            pictures = [ img['src'] for img in html_soup.find_all('img') ]
             description = html_soup.find('div' , attrs={'itemprop': 'description'}).get_text() if html_soup.find('div' , attrs={'itemprop': 'description'}) is not None else 'N/A'
             try:
                 phone_no = re.findall(r"((?:\+\d{2}[-\.\s]??|\d{4}[-\.\s]??)?(?:\d{3}[-\.\s]??\d{3}[-\.\s]??\d{4}|\(\d{3}\)\s*\d{3}[-\.\s]??\d{4}|\d{3}[-\.\s]??\d{4}))", description)
@@ -114,9 +114,9 @@ class KijijiScraper():
            
             if not self.append_row(to_append):
                 print('error in appending row')
-            
+            break
         
-            self.df.to_excel("kijiji_buy_sell.xlsx") 
+        self.df.to_excel("kijiji_buy_sell.xlsx") 
     
     
     def append_row(self, to_append: list) -> bool:
