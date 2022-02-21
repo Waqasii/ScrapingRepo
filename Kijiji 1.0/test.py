@@ -7,16 +7,17 @@ from requests import get
 from bs4 import BeautifulSoup
 import pandas as pd
 import re
+import ast
 
-start_link = 'https://www.kijiji.ca/v-renovation-cabinet-counter/city-of-toronto/custom-kitchen-cabinets-and-bathroom-vanities-10-off/1605096858'
+start_link = 'https://www.kijiji.ca/v-buy-sell-other/ottawa/opi-nail-polish/1523315041'
 # start_link = 'https://www.kijiji.ca/v-other-home-appliance/oakville-halton-region/brand-new-500w-portable-power-station-emergency-power/1589915641'
 
 response = get(start_link)
 html_soup = BeautifulSoup(response.text, 'html.parser')
 
-title = html_soup.find('h1' , attrs={'class': 'title-2323565163'}).text
+title = html_soup.find('h1' , attrs={'class': 'title-2323565163'}).get_text()
 bread_crumbs = html_soup.find('div' , attrs={'class': 'breadcrumbs-320621489'}).text
-date_posted = html_soup.find('div' , attrs={'class': 'datePosted-383942873'}).text
+date_posted = html_soup.find('div' , attrs={'class': 'datePosted-383942873'}).text if html_soup.find('div' , attrs={'class': 'datePosted-383942873'}) is not None else 'N/A'
 address = html_soup.find('span' , attrs={'class': 'address-3617944557'}).text
 pictures = html_soup.find_all('img')
 description = html_soup.find('div' , attrs={'itemprop': 'description'}).text
@@ -43,6 +44,17 @@ print(description)
 print(phone_no)
 print(email)
 print('Price:', price)
+
+
+latitude = html_soup.find('meta' , attrs={'property': 'og:latitude'})['content']
+longitude = html_soup.find('meta' , attrs={'property': 'og:longitude'})['content']
+locality = html_soup.find('meta' , attrs={'property': 'og:locality'})['content']
+region = html_soup.find('meta' , attrs={'property': 'og:region'})['content']
+
+print('latitude:', latitude)
+print('longitude:', longitude)
+print('locality:', locality)
+print('region:', region)
 
 
     
