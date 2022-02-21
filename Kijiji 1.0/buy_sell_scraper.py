@@ -15,6 +15,7 @@ class KijijiScraper():
         self.start_link = start_link
         self.item_links = []
         self.pages_links = [start_link]
+        self.df = pd.DataFrame(columns=['Title','Breadcrumb','Date Posted','Address','Pictures','Description','Phone No','Email','Price','Link'])
         
         self.get_items_links(self.start_link)
     
@@ -31,10 +32,12 @@ class KijijiScraper():
         # get the next page link if available else finish
         next_page = self.get_next_page(page_link=page_link)
         if next_page:
-            self.scrape_info()
-            # self.get_items_links(next_page)
+            # self.scrape_info()
+            self.get_items_links(next_page)
         else:
             self.scrape_info()
+
+        print('Total Pages:', len(self.pages_links))
     
     
     def get_next_page(self, page_link):
@@ -47,6 +50,8 @@ class KijijiScraper():
             next_page = self.base_url + html_soup.find_all('a' , attrs={'title': 'Next'})[0]['href']
             if next_page not in self.pages_links:
                 self.pages_links.append(next_page)
+                print('Page No:', len(self.pages_links))
+                
                 return next_page
             else:
                 return None
@@ -82,6 +87,9 @@ class KijijiScraper():
                 # email = email_regex.search(str(description)).group()
             except:
                 email = 'None'
+            
+            price = html_soup.find('div' , attrs={'class': 'priceContainer-1419890179'}).text
+            
 
 
     
@@ -95,6 +103,8 @@ class KijijiScraper():
             print('description:', description)
             print('phone_no:', phone_no)
             print('email:', email)
+            print('Price:', price)
+            print('Link:', item)
             
             break
     
@@ -102,5 +112,6 @@ class KijijiScraper():
 
 
 base_url = 'https://www.kijiji.ca'
-start_link = 'https://www.kijiji.ca/b-buy-sell/ontario/c10l9004'
+# start_link = 'https://www.kijiji.ca/b-buy-sell/ontario/c10l9004'  #buy and sell
+start_link = 'https://www.kijiji.ca/b-buy-sell/ontario/c10l9004'  #buy and sell
 KijijiScraper(base_url=base_url, start_link=start_link)

@@ -9,6 +9,7 @@ import pandas as pd
 import re
 
 start_link = 'https://www.kijiji.ca/v-renovation-cabinet-counter/city-of-toronto/custom-kitchen-cabinets-and-bathroom-vanities-10-off/1605096858'
+# start_link = 'https://www.kijiji.ca/v-other-home-appliance/oakville-halton-region/brand-new-500w-portable-power-station-emergency-power/1589915641'
 
 response = get(start_link)
 html_soup = BeautifulSoup(response.text, 'html.parser')
@@ -30,6 +31,8 @@ try:
     # email = email_regex.search(str(description)).group()
 except:
     email = 'None'
+price = html_soup.find('div' , attrs={'class': 'priceContainer-1419890179'}).text
+
     
 print('Title:', title)
 print('bread_crumbs:', bread_crumbs)
@@ -39,7 +42,7 @@ print('pictures:', pictures[0]['src'])
 print(description)
 print(phone_no)
 print(email)
-
+print('Price:', price)
 
 
     
