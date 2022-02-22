@@ -27,17 +27,13 @@ class KijijiScraper():
             self.get_items_links(next_page)
             
             self.scrape_info()
-            
                 
             next_page = self.get_next_page(next_page)
             
             if next_page is None:
                 print('next page None')
                 break
-            
-            
-            
-            
+          
                      
     def get_items_links(self, page_link):
         """This method will grab all the links of items on a provided page link 
@@ -65,7 +61,10 @@ class KijijiScraper():
             else:
                 print('--------Next Page Found ALready')
                 return None
-        except:
+        except Exception as er:
+            print('Error in getting next page')
+            print('Error:', er)
+            print('page:', page_link)
             return None
         
     
@@ -131,7 +130,7 @@ class KijijiScraper():
             except:
                 print('Error for link:', item)
             
-            
+        
         
         self.df.to_excel(self.file_name + ".xlsx") 
         self.item_links = []
