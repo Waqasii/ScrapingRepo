@@ -10,14 +10,25 @@ import re
 
 class KijijiScraper():
     
-    def __init__(self, base_url: str, start_link: str) -> None:
+    def __init__(self, base_url: str, start_link: str) :
+        
         self.base_url = base_url
         self.start_link = start_link
         self.item_links = []
         self.pages_links = [start_link]
         self.df = pd.DataFrame(columns=['Title','Breadcrumb','Date Posted','Address', 'latitude', 'longitude', 'locality', 'region', 'Pictures','Description','Phone No','Email','Price','Link'])
         
-        self.get_items_links(self.start_link)
+        # start scraping
+        next_page = start_link
+        while next_page: 
+            self.get_items_links(next_page)
+            self.scrape_info()
+            next_page = self.get_next_page(next_page)
+            
+            if next_page is None:
+                print('next page None')
+                break
+            
     
     
     def get_items_links(self, page_link):
@@ -28,18 +39,9 @@ class KijijiScraper():
         html_soup = BeautifulSoup(response.text, 'html.parser')
         total_items=[self.base_url+link['href'] for link in html_soup.find_all('a' , attrs={'class': 'title'}) ]
         self.item_links.extend(total_items)
+       
         
-        # get the next page link if available else finish
-        next_page = self.get_next_page(page_link=page_link)
-        if next_page:
-            self.scrape_info()
-            # self.get_items_links(next_page)
-        else:
-            self.scrape_info()
-
-        print('Total Pages:', len(self.pages_links))
-    
-    
+        
     def get_next_page(self, page_link):
         """This method will return the next_page link if found else None
         """
@@ -54,15 +56,16 @@ class KijijiScraper():
                 
                 return next_page
             else:
+                print('--------Next Page Found ALready')
                 return None
         except:
             return None
         
     
     def scrape_info(self):
-        """This method will scrape all the info of each item and will save it into dataframe
+        """This method will scrape all the info of each item in self.item_links and will save it into dataframe
         """
-        print('In Scrape Info')
+        print('Scraping Info of page No:', len(self.pages_links))
         
         for item in self.item_links:
             print('--------------Link:', item)
@@ -78,7 +81,7 @@ class KijijiScraper():
             longitude = html_soup.find('meta' , attrs={'property': 'og:longitude'})['content'] if html_soup.find('meta' , attrs={'property': 'og:longitude'})  is not None else 'N/A'
             locality = html_soup.find('meta' , attrs={'property': 'og:locality'})['content'] if html_soup.find('meta' , attrs={'property': 'og:locality'})  is not None else 'N/A'
             region = html_soup.find('meta' , attrs={'property': 'og:region'})['content'] if html_soup.find('meta' , attrs={'property': 'og:region'}) is not None else 'N/A'
-            pictures = [ img['src'] for img in html_soup.find_all('img') ]
+            pictures = [ img['src'] for img in html_soup.find_all('img', attrs={'class': 'image-3484370594 heroImageBackground-2776220296'}) ]
             description = html_soup.find('div' , attrs={'itemprop': 'description'}).get_text() if html_soup.find('div' , attrs={'itemprop': 'description'}) is not None else 'N/A'
             try:
                 phone_no = re.findall(r"((?:\+\d{2}[-\.\s]??|\d{4}[-\.\s]??)?(?:\d{3}[-\.\s]??\d{3}[-\.\s]??\d{4}|\(\d{3}\)\s*\d{3}[-\.\s]??\d{4}|\d{3}[-\.\s]??\d{4}))", description)
@@ -114,9 +117,11 @@ class KijijiScraper():
            
             if not self.append_row(to_append):
                 print('error in appending row')
-            break
+            
+            
         
         self.df.to_excel("kijiji_buy_sell.xlsx") 
+        self.item_links = []
     
     
     def append_row(self, to_append: list) -> bool:
